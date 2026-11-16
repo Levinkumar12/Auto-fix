@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Vehicle Service - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom p-4 bg-white">
+                <div class="text-center mb-4">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-2">
+                        <i class="bi bi-calendar-plus me-1"></i> Direct Appointment
+                    </span>
+                    <h3 class="fw-bold">Book a Vehicle Service</h3>
+                    <p class="text-muted small">Select your vehicle, chosen mechanic, desired service, and preferred appointment time.</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Step 1: Select Vehicle -->
+                    <div class="mb-4 p-3 bg-light rounded-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-primary mb-0"><i class="bi bi-car-front me-1"></i> 1. Select Your Vehicle *</label>
+                            <a href="{% url 'vehicle_add' %}" class="small text-decoration-none"><i class="bi bi-plus-circle"></i> Add New Vehicle</a>
+                        </div>
+                        <select name="vehicle" class="form-select" required>
+                            <option value="">-- Choose from your registered vehicles --</option>
+                            {% for v in vehicles %}
+                                <option value="{{ v.id }}" {% if request.GET.vehicle == v.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ v.vehicle_name }} ({{ v.vehicle_number }}) - {{ v.get_fuel_type_display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Step 2: Select Preferred Mechanic -->
+                    <div class="mb-4 p-3 bg-light rounded-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-primary mb-0"><i class="bi bi-person-badge me-1"></i> 2. Select Your Preferred Mechanic *</label>
+                            <a href="{% url 'browse_mechanics' %}" class="small text-decoration-none"><i class="bi bi-search"></i> Browse All Mechanics</a>
+                        </div>
+                        <select name="mechanic" class="form-select" required>
+                            <option value="">-- Choose your trusted mechanic --</option>
+                            {% for m in mechanics %}
+                                <option value="{{ m.id }}" {% if selected_mechanic and selected_mechanic.id == m.id %}selected{% endif %}>
+                                    {{ m.user.get_full_name|default:m.user.username }} &bull; {{ m.workshop_name|default:m.specialization }} ({{ m.city }}) - Base: ₹{{ m.hourly_rate }} [{{ m.average_rating }}★]
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text small">Admin does not assign mechanics. You are choosing your own preferred expert.</div>
+                    </div>
+
+                    <!-- Step 3: Select Service -->
+                    <div class="mb-4 p-3 bg-light rounded-3">
+                        <label class="form-label fw-bold text-primary mb-2"><i class="bi bi-gear me-1"></i> 3. Select Service Type *</label>
+                        <select name="service" id="service_select" class="form-select" required>
+                            <option value="">-- Select required service --</option>
+                            <optgroup label="Custom Problem &amp; Diagnosis (Cost estimated after vehicle reaches workshop)">
+                                {% for s in services %}
+                                    {% if s.price_type == 'ESTIMATE' %}
+                                        <option value="{{ s.id }}" data-type="ESTIMATE">
+                                            🔍 {{ s.service_name }} &bull; Estimate after physical inspection (₹0 upfront)
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Fixed Price Standard Packages">
+                                {% for s in services %}
+                                    {% if s.price_type != 'ESTIMATE' %}
+                                        <option value="{{ s.id }}" data-type="FIXED">
+                                            📦 {{ s.service_name }} &bull; Fixed Package: ₹{{ s.base_price }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                        </select>
+                        <div id="estimate_tip" class="alert alert-info py-2 px-3 mt-2 small mb-0 rounded-3 d-none">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            <strong>How Custom Problem Booking Works:</strong> You pay <strong>₹0 upfront</strong>. When your vehicle reaches the mechanic's workshop, the mechanic inspects the issue and submits an itemized cost estimate. Work begins only after you click <strong>Approve Estimate</strong> on your portal!
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Schedule Date & Time -->
+                    <div class="mb-4 p-3 bg-light rounded-3">
+                        <label class="form-label fw-bold text-primary mb-2"><i class="bi bi-clock me-1"></i> 4. Preferred Appointment Schedule *</label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Service Date</label>
+                                <input type="date" name="appointment_date" min="{{ today }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Time Slot</label>
+                                <select name="appointment_time" class="form-select" required>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:30:00">10:30 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:30:00">03:30 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Problem Notes -->
+                    <div class="mb-4 p-3 bg-light rounded-3">
+                        <label class="form-label fw-bold text-primary mb-1">
+                            <i class="bi bi-chat-left-dots me-1"></i> 5. Describe Vehicle Problem / Symptoms Observed *
+                        </label>
+                        <div class="small text-muted mb-2">Help the mechanic prepare the right tools and diagnostic equipment before your arrival.</div>
+                        <textarea name="customer_notes" rows="3" class="form-control" placeholder="e.g. Unusual knocking noise from engine in 2nd gear, brakes feel loose, battery dying frequently, oil leakage noticed underneath..."></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning btn-lg text-dark fw-bold py-2">
+                            <i class="bi bi-send-check me-2"></i> Submit Booking to Selected Mechanic
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

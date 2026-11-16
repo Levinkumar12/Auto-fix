@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Details - {{ booking.booking_number }} - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'my_bookings' %}">My Bookings</a></li>
+            <li class="breadcrumb-item active">{{ booking.booking_number }}</li>
+        </ol>
+    </nav>
+
+    <!-- Workshop Drop-Off Alert if Booking Accepted -->
+    {% if booking.status == 'ACCEPTED' %}
+        <div class="alert alert-success border-success shadow-sm p-4 mb-4 rounded-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-2 bg-success text-white rounded-circle me-3">
+                        <i class="bi bi-geo-alt-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-success mb-1">
+                            <i class="bi bi-check-circle-fill me-1"></i> Booking Accepted by Mechanic!
+                        </h5>
+                        <p class="mb-0 text-dark small">
+                            Your mechanic has accepted your appointment. Please drop off your vehicle at the workshop address below at your scheduled time.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-2 mt-md-0">
+                        <span class="badge bg-success-subtle text-success border border-success px-3 py-2">
+                        <i class="bi bi-geo-alt me-1"></i> Workshop drop-off details
+                    </span>
+                </div>
+            </div>
+
+            <div class="bg-white p-3 rounded-3 border">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-7">
+                        <div class="fw-bold fs-6 text-dark mb-1">
+                            <i class="bi bi-tools text-primary me-1"></i>{{ booking.mechanic.workshop_name|default:booking.mechanic.user.get_full_name|default:booking.mechanic.user.username }}
+                        </div>
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-pin-map-fill text-danger me-1"></i><strong>Workshop Address:</strong> {{ booking.mechanic.address }}, {{ booking.mechanic.city }}
+                        </div>
+                        <div class="text-muted small">
+                            <i class="bi bi-telephone-fill text-primary me-1"></i><strong>Phone:</strong> <a href="tel:{{ booking.mechanic.phone }}" class="fw-bold text-decoration-none">{{ booking.mechanic.phone }}</a> &bull; 
+                            <strong>Drop-off Schedule:</strong> {{ booking.appointment_date|date:"D, d M Y" }} at {{ booking.appointment_time|time:"h:i A" }}
+                        </div>
+                    </div>
+                    <div class="col-md-5 text-md-end">
+                        <a href="https://maps.google.com/?q={{ booking.mechanic.workshop_name|urlencode }}+{{ booking.mechanic.address|urlencode }}+{{ booking.mechanic.city|urlencode }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-map me-1"></i> Open Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Status Timeline Card -->
+    {% if booking.status == 'ESTIMATE_SENT' %}
+        <div class="alert alert-warning border-warning shadow-sm p-4 mb-4 rounded-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-bell-fill text-warning me-2"></i>Cost Estimate Awaiting Your Approval!
+                    </h5>
+                    <p class="mb-0 text-dark">
+                        Your mechanic inspected the vehicle and quoted <strong>₹{{ booking.estimated_total }}</strong> (Labour: ₹{{ booking.estimated_labour }} + Parts: ₹{{ booking.estimated_parts }}). Repair will start once you approve.
+                    </p>
+                </div>
+                <div class="mt-3 mt-md-0 d-flex gap-2">
+                    <a href="{% url 'approve_estimate' booking.id %}" class="btn btn-success fw-bold px-3">
+                        <i class="bi bi-check2-circle me-1"></i> Approve Estimate
+                    </a>
+                    <a href="{% url 'reject_estimate' booking.id %}" class="btn btn-outline-danger btn-sm px-3">
+                        Decline
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card card-custom p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Booking Status Progress</h5>
+            <span class="badge 
+                {% if booking.status == 'COMPLETED' %}bg-success
+                {% elif booking.status == 'IN_PROGRESS' %}bg-primary
+                {% elif booking.status == 'ESTIMATE_SENT' %}bg-warning text-dark
+                {% elif booking.status == 'VEHICLE_RECEIVED' %}bg-info text-dark
+                {% elif booking.status == 'ACCEPTED' %}bg-primary
+                {% elif booking.status == 'PENDING' %}bg-secondary
+                {% elif booking.status == 'REJECTED' %}bg-danger
+                {% elif booking.status == 'CANCELLED' %}bg-dark
+                {% endif %} fs-6 px-3 py-2">
+                {% if booking.status == 'ESTIMATE_SENT' %}
+                    <i class="bi bi-hourglass-split me-1"></i>Estimate Awaiting Your Approval
+                {% else %}
+                    {{ booking.get_status_display }}
+                {% endif %}
+            </span>
+        </div>
+
+        {% if booking.status != 'REJECTED' and booking.status != 'CANCELLED' %}
+            <div class="row text-center mt-3 g-2">
+                <div class="col">
+                    <div class="p-2 rounded {% if booking.status in 'PENDING,ACCEPTED,VEHICLE_RECEIVED,ESTIMATE_SENT,IN_PROGRESS,COMPLETED' %}bg-primary text-white{% else %}bg-light text-muted{% endif %}">
+                        <i class="bi bi-clock"></i>
+                        <div class="small fw-bold">1. Requested</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="p-2 rounded {% if booking.status in 'ACCEPTED,VEHICLE_RECEIVED,ESTIMATE_SENT,IN_PROGRESS,COMPLETED' %}bg-primary text-white{% else %}bg-light text-muted{% endif %}">
+                        <i class="bi bi-check-circle"></i>
+                        <div class="small fw-bold">2. Accepted</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="p-2 rounded {% if booking.status in 'VEHICLE_RECEIVED,ESTIMATE_SENT,IN_PROGRESS,COMPLETED' %}bg-primary text-white{% else %}bg-light text-muted{% endif %}">
+                        <i class="bi bi-box-arrow-in-down"></i>
+                        <div class="small fw-bold">3. At Workshop</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="p-2 rounded {% if booking.status in 'ESTIMATE_SENT,IN_PROGRESS,COMPLETED' %}bg-primary text-white{% else %}bg-light text-muted{% endif %}">
+                        <i class="bi bi-calculator"></i>
+                        <div class="small fw-bold">4. Estimate</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="p-2 rounded {% if booking.status in 'IN_PROGRESS,COMPLETED' %}bg-primary text-white{% else %}bg-light text-muted{% endif %}">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        <div class="small fw-bold">5. Repairing</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="p-2 rounded {% if booking.status == 'COMPLETED' %}bg-success text-white{% else %}bg-light text-muted{% endif %}">
+                        <i class="bi bi-flag-fill"></i>
+                        <div class="small fw-bold">6. Done</div>
+                    </div>
+                </div>
+            </div>
+        {% elif booking.status == 'REJECTED' %}
+            <div class="alert alert-danger mt-2">
+                <strong><i class="bi bi-x-circle me-1"></i> Booking Rejected by Mechanic:</strong>
+                {{ booking.rejection_reason|default:"Mechanic was unavailable at this slot." }}
+            </div>
+        {% elif booking.status == 'CANCELLED' %}
+            <div class="alert alert-secondary mt-2">
+                <strong><i class="bi bi-slash-circle me-1"></i> Booking Cancelled:</strong>
+                {{ booking.rejection_reason|default:"Booking was cancelled by customer or estimate declined." }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Booking Details Grid -->
+    <div class="row g-4">
+        <!-- Vehicle & Service Details -->
+        <div class="col-md-6">
+            <div class="card card-custom p-4 bg-white h-100">
+                <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary"><i class="bi bi-car-front me-2"></i> Vehicle & Service</h5>
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td class="text-muted" style="width: 40%;">Booking ID:</td>
+                        <td class="fw-bold font-monospace">{{ booking.booking_number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Vehicle Name:</td>
+                        <td class="fw-bold">{{ booking.vehicle.vehicle_name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Registration No:</td>
+                        <td><span class="badge bg-secondary font-monospace">{{ booking.vehicle.vehicle_number }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Vehicle Type:</td>
+                        <td>{{ booking.vehicle.get_vehicle_type_display }} ({{ booking.vehicle.get_fuel_type_display }})</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Service Booked:</td>
+                        <td class="fw-bold text-dark">{{ booking.service.service_name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Scheduled For:</td>
+                        <td class="fw-bold text-success">{{ booking.appointment_date|date:"D, d M Y" }} at {{ booking.appointment_time|time:"h:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Customer Notes:</td>
+                        <td>{{ booking.customer_notes|default:"None provided" }}</td>
+                    </tr>
+                </table>
+
+                {% if booking.status == 'PENDING' %}
+                    <div class="mt-3 pt-3 border-top">
+                        <a href="{% url 'cancel_booking' booking.id %}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-x-circle me-1"></i> Cancel Booking Request
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Mechanic & Invoicing -->
+        <div class="col-md-6">
+            <div class="card card-custom p-4 bg-white h-100">
+                <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary"><i class="bi bi-person-badge me-2"></i> Assigned Mechanic (Direct Selection)</h5>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-light border p-3 me-3 text-primary fs-3">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">{{ booking.mechanic.workshop_name|default:booking.mechanic.user.get_full_name|default:booking.mechanic.user.username }}</h5>
+                        <div class="text-muted small">{{ booking.mechanic.specialization }}</div>
+                        <div class="small text-muted mt-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i><strong>Workshop:</strong> {{ booking.mechanic.address }}, {{ booking.mechanic.city }}</div>
+                        <div class="small text-muted"><i class="bi bi-telephone-fill text-primary me-1"></i><a href="tel:{{ booking.mechanic.phone }}" class="text-decoration-none">{{ booking.mechanic.phone }}</a></div>
+                    </div>
+                </div>
+
+                {% if booking.mechanic_notes %}
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <span class="fw-bold small text-dark"><i class="bi bi-clipboard-pulse me-1"></i> Mechanic's Diagnosis &amp; Notes:</span>
+                        <p class="small text-muted mb-0 mt-1">{{ booking.mechanic_notes }}</p>
+                    </div>
+                {% endif %}
+
+                {% if booking.estimated_total %}
+                    <div class="card border-warning-subtle bg-warning-subtle p-3 mb-3 rounded-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark"><i class="bi bi-calculator me-1"></i> Quoted Cost Estimate</span>
+                            <span class="fs-5 fw-bold text-primary">₹{{ booking.estimated_total }}</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            Labour: ₹{{ booking.estimated_labour|default:"0.00" }} &bull; Parts: ₹{{ booking.estimated_parts|default:"0.00" }}
+                        </div>
+                        {% if booking.estimate_notes %}
+                            <div class="small text-dark p-2 bg-white rounded border mb-2">
+                                <strong>Inspection Notes:</strong> {{ booking.estimate_notes }}
+                            </div>
+                        {% endif %}
+                        {% if booking.status == 'ESTIMATE_SENT' %}
+                            <div class="d-flex gap-2 mt-2">
+                                <a href="{% url 'approve_estimate' booking.id %}" class="btn btn-success btn-sm fw-bold flex-grow-1">
+                                    <i class="bi bi-check2-circle me-1"></i> Approve Estimate
+                                </a>
+                                <a href="{% url 'reject_estimate' booking.id %}" class="btn btn-outline-danger btn-sm">
+                                    Decline
+                                </a>
+                            </div>
+                        {% elif booking.estimate_approved_at %}
+                            <div class="small text-success mt-1">
+                                <i class="bi bi-check-circle-fill me-1"></i> You approved this estimate on {{ booking.estimate_approved_at|date:"d M Y, h:i A" }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Invoice section -->
+                <div class="mt-auto pt-3 border-top">
+                    {% if booking.status == 'COMPLETED' and has_invoice %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="text-muted small">Total Bill:</span>
+                                <h4 class="fw-bold text-success mb-0">₹{{ booking.invoice.total_amount }}</h4>
+                            </div>
+                            <span class="badge {% if booking.invoice.is_paid %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                {% if booking.invoice.is_paid %}PAID{% else %}PAYMENT DUE{% endif %}
+                            </span>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'invoice_detail' booking.id %}" class="btn btn-success fw-bold">
+                                <i class="bi bi-receipt me-1"></i> View Itemized Invoice & Pay
+                            </a>
+                            {% if not has_reviewed %}
+                                <a href="{% url 'submit_review' booking.id %}" class="btn btn-warning text-dark fw-bold">
+                                    <i class="bi bi-star-fill me-1"></i> Rate & Review Mechanic
+                                </a>
+                            {% else %}
+                                <div class="alert alert-info py-2 small mb-0 text-center">
+                                    <i class="bi bi-check-circle-fill me-1"></i> You rated this mechanic: {{ booking.review.rating }}★
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-muted small text-center py-2">
+                            <i class="bi bi-info-circle me-1"></i> Final invoice will be generated when the mechanic completes repair work.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

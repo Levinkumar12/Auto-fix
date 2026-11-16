@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Catalog - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold mb-2">
+            <i class="bi bi-gear-wide-connected me-1"></i> Transparent Service Pricing
+        </span>
+        <h2 class="fw-bold">Available Vehicle Services</h2>
+        <p class="text-muted mx-auto" style="max-width: 650px;">
+            Explore standard repair and routine maintenance procedures. Select any service to view top verified mechanics offering it.
+        </p>
+
+        <!-- Filter by Vehicle Category -->
+        <div class="btn-group mt-2">
+            <a href="{% url 'service_list' %}" class="btn btn-sm {% if not vehicle_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">All Categories</a>
+            <a href="{% url 'service_list' %}?vehicle_type=2_WHEELER" class="btn btn-sm {% if vehicle_filter == '2_WHEELER' %}btn-primary{% else %}btn-outline-primary{% endif %}">Two-Wheelers (Bikes / Scooters)</a>
+            <a href="{% url 'service_list' %}?vehicle_type=4_WHEELER" class="btn btn-sm {% if vehicle_filter == '4_WHEELER' %}btn-primary{% else %}btn-outline-primary{% endif %}">Four-Wheelers (Cars / SUVs)</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for s in services %}
+            <div class="col-md-4">
+                <div class="card card-custom p-4 bg-white h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="rounded-3 bg-primary text-white p-2">
+                            <i class="bi {{ s.icon|default:'bi-wrench' }}" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <span class="badge bg-secondary">{{ s.get_vehicle_type_display }}</span>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">{{ s.service_name }}</h5>
+                    <p class="text-muted small flex-grow-1">{{ s.description }}</p>
+
+                    <div class="bg-light p-2 rounded-3 small mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-clock me-1"></i> Est. Duration:</span>
+                            <span class="fw-semibold">{{ s.estimated_hours }} Hours</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="text-muted"><i class="bi bi-tag me-1"></i> Pricing:</span>
+                            {% if s.price_type == 'ESTIMATE' %}
+                                <span class="badge bg-warning text-dark">Estimate After Inspection</span>
+                            {% else %}
+                                <span class="fw-bold text-success fs-6">₹{{ s.base_price }} <span class="small text-muted fw-normal">(Fixed)</span></span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-auto">
+                        <a href="{% url 'service_detail' s.id %}" class="btn btn-outline-primary fw-semibold">
+                            View Qualified Mechanics <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No services found under this filter.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

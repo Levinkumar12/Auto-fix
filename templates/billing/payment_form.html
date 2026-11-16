@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Invoice #{{ invoice.invoice_number }} - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card card-custom p-4 p-md-5 bg-white shadow-sm">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="checkout-icon-badge mx-auto mb-2">
+                        <i class="bi bi-shield-check fs-2 text-success"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">Payment Checkout</h3>
+                    <p class="text-muted small">Invoice #{{ invoice.invoice_number }} &bull; Booking #{{ invoice.booking.booking_number }}</p>
+                </div>
+
+                <!-- Invoice Summary Card -->
+                <div class="checkout-summary-box p-3 rounded-3 mb-4">
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Service Booked</span>
+                            <span class="fw-semibold">{{ invoice.booking.service.service_name }}</span>
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <span class="text-muted small d-block">Vehicle</span>
+                            <span class="fw-semibold">{{ invoice.booking.vehicle.vehicle_name }} ({{ invoice.booking.vehicle.vehicle_number }})</span>
+                        </div>
+                        <div class="col-sm-6 mt-2">
+                            <span class="text-muted small d-block">Workshop / Mechanic</span>
+                            <span class="fw-semibold text-primary">
+                                <i class="bi bi-tools me-1"></i>{{ mechanic.workshop_name|default:mechanic.user.get_full_name|default:mechanic.user.username }}
+                            </span>
+                        </div>
+                        <div class="col-sm-6 text-sm-end mt-2">
+                            <span class="text-muted small d-block">Total Payable (incl. GST)</span>
+                            <span class="fs-4 fw-bold text-success">₹{{ invoice.total_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" id="payment_checkout_form">
+                    {% csrf_token %}
+
+                    <!-- Payment Method Selection -->
+                    <label class="form-label fw-bold mb-3">
+                        <i class="bi bi-credit-card-2-front me-1 text-primary"></i> Choose Payment Method:
+                    </label>
+
+                    <div class="row g-3 mb-4">
+                        <!-- UPI QR Scan Option -->
+                        <div class="col-sm-6">
+                            <label class="payment-method-card h-100 d-block p-3 rounded-3 border text-start cursor-pointer active" id="method_card_upi" for="id_payment_method_0">
+                                <div class="d-flex align-items-center mb-2">
+                                    <input type="radio" name="payment_method" value="UPI" id="id_payment_method_0" class="form-check-input payment-radio me-2" checked>
+                                    <span class="fw-bold text-dark">UPI / QR Code Scan</span>
+                                </div>
+                                <p class="text-muted small mb-0">Instant payment using GPay, PhonePe, Paytm or BHIM QR.</p>
+                            </label>
+                        </div>
+
+                        <!-- Cash Option -->
+                        <div class="col-sm-6">
+                            <label class="payment-method-card h-100 d-block p-3 rounded-3 border text-start cursor-pointer" id="method_card_cash" for="id_payment_method_1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <input type="radio" name="payment_method" value="CASH" id="id_payment_method_1" class="form-check-input payment-radio me-2">
+                                    <span class="fw-bold text-dark">Cash at Workshop</span>
+                                </div>
+                                <p class="text-muted small mb-0">Pay directly at mechanic counter during vehicle pickup.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- UPI QR Scan Panel (Shown when UPI is selected) -->
+                    <div id="upi_payment_panel" class="payment-detail-panel p-4 rounded-3 border bg-light mb-4 text-center">
+                        <div class="d-inline-block p-2 bg-white rounded-3 shadow-sm mb-3">
+                            {% if qr_url %}
+                                <img src="{{ qr_url }}" alt="Workshop Payment QR" class="img-fluid payment-qr-code rounded-2">
+                            {% else %}
+                                <div class="text-muted p-4">QR Code Not Available</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">
+                                <i class="bi bi-qr-code-scan me-1"></i> Scan &amp; Pay ₹{{ invoice.total_amount }}
+                            </span>
+                        </div>
+
+                        <p class="small text-muted mb-2">
+                            Open <strong>Google Pay</strong>, <strong>PhonePe</strong>, <strong>Paytm</strong>, or <strong>BHIM</strong> and scan the QR code above.
+                        </p>
+
+                        <div class="upi-info-badge py-1 px-3 d-inline-block bg-white border rounded-pill small mb-3">
+                            <span class="text-muted">UPI ID:</span>
+                            <span class="fw-bold font-monospace text-primary ms-1">{{ mechanic.upi_id|default:mechanic.phone|add:"@upi" }}</span>
+                        </div>
+
+                        <div class="text-start mt-3">
+                            <label for="id_transaction_reference" class="form-label small fw-semibold text-muted">
+                                UPI Reference / UTR Number (Optional):
+                            </label>
+                            {{ form.transaction_reference }}
+                            <div class="form-text extra-small">Enter the 12-digit transaction ID from your UPI app for instant verification.</div>
+                        </div>
+                    </div>
+
+                    <!-- Cash Payment Panel (Shown when CASH is selected) -->
+                    <div id="cash_payment_panel" class="payment-detail-panel p-4 rounded-3 border bg-light mb-4 d-none">
+                        <div class="text-center mb-3">
+                            <div class="cash-icon-badge mx-auto mb-2">
+                                <i class="bi bi-cash-coin fs-2 text-warning"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Pay Cash at Workshop</h5>
+                            <p class="text-muted small mb-0">Pay the mechanic at the workshop. Your invoice stays unpaid until the mechanic confirms receiving the cash.</p>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-3 border mb-3 small">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Amount Due in Cash:</span>
+                                <span class="fw-bold text-success fs-6">₹{{ invoice.total_amount }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Workshop:</span>
+                                <span class="fw-semibold">{{ mechanic.workshop_name|default:mechanic.user.get_full_name|default:mechanic.user.username }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Address:</span>
+                                <span class="fw-semibold text-end">{{ mechanic.address }}, {{ mechanic.city }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Contact Phone:</span>
+                                <span class="fw-semibold">{{ mechanic.phone }}</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning py-2 px-3 small mb-0">
+                            <i class="bi bi-info-circle me-1"></i> This records your choice to pay cash. The mechanic must confirm receipt before the invoice is marked paid.
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold py-2 shadow-sm" id="btn_confirm_payment">
+                            <i class="bi bi-lock-fill me-1"></i> Confirm Payment Method (₹{{ invoice.total_amount }})
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{% url 'invoice_detail' invoice.booking.id %}" class="small text-muted text-decoration-none">
+                            <i class="bi bi-arrow-left me-1"></i> Cancel and return to invoice
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

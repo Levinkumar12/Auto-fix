@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mechanic Registration - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-0 justify-content-center">
+
+        <!-- LEFT SIDE: Image + Benefits Panel -->
+        <div class="col-lg-4">
+            <div class="mechanic-side-panel h-100 p-4 d-flex flex-column align-items-center justify-content-center text-center">
+                <!-- Mechanic Image with float animation -->
+                <img src="{% static 'images/mechanic-hero.jpg' %}" alt="Mechanic" class="mechanic-hero-img mb-4">
+
+                <h4 class="fw-bold mb-1">Become a Pro Partner</h4>
+                <p class="small opacity-75 mb-4">Join 100+ trusted mechanics on Auto Fix</p>
+
+                <!-- Animated Benefits -->
+                <div class="w-100 px-2">
+                    <div class="benefit-item d-flex align-items-center mb-3">
+                        <div class="benefit-icon bg-warning text-dark me-3">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div class="text-start">
+                            <div class="fw-semibold small">Direct Customers</div>
+                            <div class="extra-small opacity-75" style="font-size:0.75rem;">No middlemen, customers choose YOU</div>
+                        </div>
+                    </div>
+                    <div class="benefit-item d-flex align-items-center mb-3">
+                        <div class="benefit-icon bg-success text-white me-3">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="text-start">
+                            <div class="fw-semibold small">Earn More</div>
+                            <div class="extra-small opacity-75" style="font-size:0.75rem;">Set your own rates & get paid fast</div>
+                        </div>
+                    </div>
+                    <div class="benefit-item d-flex align-items-center mb-3">
+                        <div class="benefit-icon bg-info text-white me-3">
+                            <i class="bi bi-calendar2-check"></i>
+                        </div>
+                        <div class="text-start">
+                            <div class="fw-semibold small">Manage Bookings</div>
+                            <div class="extra-small opacity-75" style="font-size:0.75rem;">Accept or reject jobs from your dashboard</div>
+                        </div>
+                    </div>
+                    <div class="benefit-item d-flex align-items-center">
+                        <div class="benefit-icon bg-danger text-white me-3">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="text-start">
+                            <div class="fw-semibold small">Build Reputation</div>
+                            <div class="extra-small opacity-75" style="font-size:0.75rem;">Get ratings & reviews from customers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Registration Form -->
+        <div class="col-lg-7">
+            <div class="card register-form-card h-100 p-4">
+                <div class="text-center mb-3">
+                    <span class="badge bg-warning text-dark px-3 py-2 pulse-badge">
+                        <i class="bi bi-tools me-1"></i> Mechanic Partner Registration
+                    </span>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Accounts are reviewed by Admin before activation for quality assurance.
+                    </p>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Non-field errors (e.g. Passwords do not match) -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        {% for error in form.non_field_errors %}
+                            <strong>{{ error }}</strong>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                        <i class="bi bi-person-fill me-1"></i> 1. Login Credentials
+                    </h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name *</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Username *</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.username.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email Address *</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Password *</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.password.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Confirm Password *</label>
+                            {{ form.confirm_password }}
+                            {% if form.confirm_password.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.confirm_password.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-wrench-adjustable me-1"></i> 2. Professional Details
+                    </h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone Number *</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Workshop / Garage Name</label>
+                            {{ form.workshop_name }}
+                            {% if form.workshop_name.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.workshop_name.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Experience (Years) *</label>
+                            {{ form.experience_years }}
+                            {% if form.experience_years.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.experience_years.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Base Labour Rate (₹) *</label>
+                            {{ form.hourly_rate }}
+                            {% if form.hourly_rate.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.hourly_rate.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">City *</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.city.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Specialization *</label>
+                        {{ form.specialization }}
+                        <div class="form-text">e.g., Two-Wheeler Engine Overhaul, Brake &amp; Suspension, Car AC &amp; Electrical</div>
+                        {% if form.specialization.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.specialization.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Workshop / Operating Address *</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.address.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Bio &amp; Certifications</label>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.bio.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-qr-code-scan me-1"></i> 3. Payment &amp; QR Setup (Optional)
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Workshop UPI ID</label>
+                            {{ form.upi_id }}
+                            <div class="form-text small">e.g. <code>9840123456@paytm</code></div>
+                            {% if form.upi_id.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.upi_id.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Upload QR Scanner Image</label>
+                            {{ form.qr_code_image }}
+                            <div class="form-text small">Google Pay, PhonePe, or Paytm QR photo</div>
+                            {% if form.qr_code_image.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.qr_code_image.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-warning py-2 fw-bold text-dark">
+                            <i class="bi bi-file-earmark-check me-1"></i> Submit Mechanic Application
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center pt-3 border-top">
+                    <p class="small text-muted mb-0">Already registered? <a href="{% url 'login' %}">Log In here</a></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

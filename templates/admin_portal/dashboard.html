@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Operations Portal - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-4 admin-dashboard-page">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge bg-danger mb-1">Superuser & Staff Portal</span>
+            <h2 class="fw-bold mb-0">Platform Administration Dashboard</h2>
+            <p class="text-muted small mb-0">Platform governance, mechanic approval approvals, service catalog & revenue monitoring</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_manage_services' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-gear-fill me-1"></i> Manage Services</a>
+            <a href="{% url 'admin_all_mechanics' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-people-fill me-1"></i> All Mechanics</a>
+            <a href="/django-admin/" target="_blank" class="btn btn-dark btn-sm"><i class="bi bi-sliders me-1"></i> Django Admin</a>
+        </div>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card card-custom p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">Total Customers</span>
+                        <h3 class="fw-bold text-primary mb-0 mt-1">{{ total_customers }}</h3>
+                    </div>
+                    <div class="p-3 bg-primary-subtle text-primary rounded-circle">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card card-custom p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">Mechanics (Approved / Total)</span>
+                        <h3 class="fw-bold text-info mb-0 mt-1">{{ approved_mechanics_count }} / {{ total_mechanics }}</h3>
+                    </div>
+                    <div class="p-3 bg-info-subtle text-info rounded-circle">
+                        <i class="bi bi-tools fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card card-custom p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">Bookings (Done / Total)</span>
+                        <h3 class="fw-bold text-warning mb-0 mt-1">{{ completed_bookings }} / {{ total_bookings }}</h3>
+                    </div>
+                    <div class="p-3 bg-warning-subtle text-warning rounded-circle">
+                        <i class="bi bi-calendar2-check-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card card-custom p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">Platform Revenue</span>
+                        <h3 class="fw-bold text-success mb-0 mt-1">₹{{ total_revenue }}</h3>
+                    </div>
+                    <div class="p-3 bg-success-subtle text-success rounded-circle">
+                        <i class="bi bi-cash-stack fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mechanic Approval Queue Section -->
+    <div class="card card-custom p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-0 text-danger">
+                    <i class="bi bi-person-check-fill me-2"></i> Mechanic Verification Queue
+                </h5>
+                <span class="text-muted small">Unapproved mechanics are hidden from customer booking until approved</span>
+            </div>
+            <span class="badge bg-warning text-dark fs-6">{{ pending_mechanics_count }} Pending</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mechanic Name</th>
+                        <th>Workshop / Specialization</th>
+                        <th>Location</th>
+                        <th>Experience</th>
+                        <th>Base Rate</th>
+                        <th>Applied On</th>
+                        <th class="text-end">Verification Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in pending_mechanics %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ m.user.get_full_name|default:m.user.username }}</div>
+                                <span class="small text-muted">{{ m.user.email }} &bull; {{ m.phone }}</span>
+                            </td>
+                            <td>
+                                <div>{{ m.workshop_name|default:"Individual" }}</div>
+                                <span class="badge bg-light text-dark border small">{{ m.specialization }}</span>
+                            </td>
+                            <td>{{ m.city }}</td>
+                            <td>{{ m.experience_years }} Yrs</td>
+                            <td>₹{{ m.hourly_rate }}</td>
+                            <td class="small text-muted">{{ m.created_at|date:"d M Y" }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'admin_approve_mechanic' m.id 'approve' %}" class="btn btn-sm btn-success fw-bold me-1">
+                                    <i class="bi bi-check-lg"></i> Approve
+                                </a>
+                                <a href="{% url 'admin_approve_mechanic' m.id 'reject' %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-lg"></i> Reject
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="bi bi-shield-check text-success fs-3 d-block mb-1"></i>
+                                All mechanic partner applications have been processed! No pending approvals.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Platform Bookings -->
+    <div class="card card-custom p-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-calendar3 me-2"></i> All Platform Appointments</h5>
+            <a href="{% url 'admin_all_bookings' %}" class="small text-decoration-none">View All Bookings</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking No</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Mechanic (Independently Selected)</th>
+                        <th>Service</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Invoice</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in recent_bookings %}
+                        <tr>
+                            <td class="font-monospace fw-bold">{{ b.booking_number }}</td>
+                            <td>{{ b.customer.user.get_full_name|default:b.customer.user.username }}</td>
+                            <td>{{ b.vehicle.vehicle_name }}</td>
+                            <td class="fw-semibold text-primary">{{ b.mechanic.user.get_full_name|default:b.mechanic.user.username }}</td>
+                            <td>{{ b.service.service_name }}</td>
+                            <td class="small">{{ b.appointment_date|date:"d M Y" }} {{ b.appointment_time|time:"h:i A" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if b.status == 'COMPLETED' %}bg-success
+                                    {% elif b.status == 'IN_PROGRESS' %}bg-secondary
+                                    {% elif b.status == 'ACCEPTED' %}bg-primary
+                                    {% elif b.status == 'PENDING' %}bg-warning text-dark
+                                    {% elif b.status == 'REJECTED' %}bg-danger
+                                    {% else %}bg-dark{% endif %}">
+                                    {{ b.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if b.invoice %}
+                                    <a href="{% url 'invoice_detail' b.id %}" class="btn btn-sm btn-outline-success">
+                                        ₹{{ b.invoice.total_amount }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No bookings on the platform yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

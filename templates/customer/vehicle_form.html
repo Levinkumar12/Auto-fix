@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card card-custom p-4 bg-white">
+                <div class="text-center mb-4">
+                    <div class="p-3 bg-primary-subtle text-primary rounded-circle mx-auto mb-2 d-inline-block">
+                        <i class="bi bi-car-front fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold">{{ title }}</h3>
+                    <p class="text-muted small">Enter vehicle specifications for accurate service records</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Vehicle Category *</label>
+                        {{ form.vehicle_type }}
+                        {{ form.vehicle_type.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Make & Model Name *</label>
+                        {{ form.vehicle_name }}
+                        {{ form.vehicle_name.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Registration Number (Plate) *</label>
+                        {{ form.vehicle_number }}
+                        <div class="form-text">Example: TN 23 AB 1234 or KA 05 MC 5678</div>
+                        {{ form.vehicle_number.errors }}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Model Year *</label>
+                            {{ form.model_year }}
+                            {{ form.model_year.errors }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Fuel Type *</label>
+                            {{ form.fuel_type }}
+                            {{ form.fuel_type.errors }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Color</label>
+                        {{ form.color }}
+                        {{ form.color.errors }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'vehicle_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold px-4">
+                            <i class="bi bi-save me-1"></i> Save Vehicle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

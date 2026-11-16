@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Auto Fix - Vehicle Service Management{% endblock %}
+
+{% block content %}
+<!-- Hero banner and primary actions -->
+<section class="home-hero" style="--hero-image: url('{% static 'images/auto-fix-home-banner.jpeg' %}');" aria-label="Vehicle service management">
+    <div class="home-hero-content">
+        <div class="home-hero-copy">
+            <span class="home-hero-badge"><i class="bi bi-shield-check" aria-hidden="true"></i> Trusted · Reliable · Professional</span>
+            <h1 class="home-hero-title"><span>Expert Care for</span><span class="home-hero-title-accent">Your Car &amp; Bike</span></h1>
+            <p class="home-hero-description">Book trusted service for your car, bike, or scooter. Compare approved mechanics and follow your repair from booking to completion.</p>
+        </div>
+        <div class="home-hero-actions" aria-label="Get started">
+        {% if user.is_authenticated and user.customer_profile %}
+            <a href="{% url 'book_service' %}" class="btn home-hero-button home-hero-button-primary">
+                <i class="bi bi-calendar2-check me-2" aria-hidden="true"></i>Book a Service
+            </a>
+        {% elif user.is_authenticated %}
+            <a href="{% url 'dashboard_redirect' %}" class="btn home-hero-button home-hero-button-primary">
+                <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Go to Dashboard
+            </a>
+        {% else %}
+            <a href="{% url 'register_customer' %}" class="btn home-hero-button home-hero-button-primary">
+                <i class="bi bi-calendar2-check me-2" aria-hidden="true"></i>Book a Service
+            </a>
+        {% endif %}
+        <a href="{% url 'browse_mechanics' %}" class="btn home-hero-button home-hero-button-outline">
+            <i class="bi bi-search me-2" aria-hidden="true"></i>Find Mechanics
+        </a>
+        <a href="{% url 'register_mechanic' %}" class="btn home-hero-button home-hero-button-outline">
+            <i class="bi bi-wrench-adjustable-circle me-2" aria-hidden="true"></i>Join as a Mechanic
+        </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Counter Banner -->
+<div class="container mt-n4" style="margin-top: -30px;">
+    <div class="row g-3 mobile-horizontal-row mobile-stat-row" role="group" aria-label="Auto Fix service statistics">
+        <div class="col-md-4 mobile-horizontal-item">
+            <div class="card card-custom p-3 bg-white text-center">
+                <h3 class="text-primary fw-bold mb-0"><span class="home-counter" data-target="{{ total_mechanics }}">{{ total_mechanics }}</span></h3>
+                <span class="text-muted small text-uppercase fw-semibold">Approved Mechanics</span>
+            </div>
+        </div>
+        <div class="col-md-4 mobile-horizontal-item">
+            <div class="card card-custom p-3 bg-white text-center">
+                <h3 class="text-success fw-bold mb-0"><span class="home-counter" data-target="{{ total_completed }}">{{ total_completed }}</span></h3>
+                <span class="text-muted small text-uppercase fw-semibold">Completed Services</span>
+            </div>
+        </div>
+        <div class="col-md-4 mobile-horizontal-item">
+            <div class="card card-custom p-3 bg-white text-center">
+                <h3 class="text-warning fw-bold mb-0"><span class="home-counter" data-target="{{ total_customers }}">{{ total_customers }}</span></h3>
+                <span class="text-muted small text-uppercase fw-semibold">Registered Vehicle Owners</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workflow Steps -->
+<section class="container py-5 home-content-section home-workflow-section">
+    <div class="text-center mb-5 home-section-heading">
+        <span class="home-eyebrow">A simpler way to service your vehicle</span>
+        <h2 class="fw-bold">How Auto Fix Works</h2>
+        <p class="text-muted mb-0">From choosing a mechanic to tracking the repair, everything stays in one place.</p>
+    </div>
+
+    <div class="row g-4 mobile-horizontal-row mobile-step-row" tabindex="0" aria-label="Swipe to view the service steps">
+        <div class="col-md-3 mobile-horizontal-item">
+            <div class="card card-custom home-step-card h-100 p-4 text-center">
+                <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    1
+                </div>
+                <h5 class="fw-bold">Add Your Vehicle</h5>
+                <p class="text-muted small mb-0">Register your bike, scooter, or car with model and registration number.</p>
+            </div>
+        </div>
+        <div class="col-md-3 mobile-horizontal-item">
+            <div class="card card-custom home-step-card h-100 p-4 text-center">
+                <div class="rounded-circle bg-warning-subtle text-warning mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    2
+                </div>
+                <h5 class="fw-bold">Choose Mechanic</h5>
+                <p class="text-muted small mb-0">Browse verified mechanics, compare experience, ratings, and rates, then book an appointment.</p>
+            </div>
+        </div>
+        <div class="col-md-3 mobile-horizontal-item">
+            <div class="card card-custom home-step-card h-100 p-4 text-center">
+                <div class="rounded-circle bg-info-subtle text-info mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    3
+                </div>
+                <h5 class="fw-bold">Track Live Status</h5>
+                <p class="text-muted small mb-0">Mechanic accepts the job and updates status: Received &rarr; In Progress &rarr; Completed.</p>
+            </div>
+        </div>
+        <div class="col-md-3 mobile-horizontal-item">
+            <div class="card card-custom home-step-card h-100 p-4 text-center">
+                <div class="rounded-circle bg-success-subtle text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    4
+                </div>
+                <h5 class="fw-bold">Invoice &amp; Review</h5>
+                <p class="text-muted small mb-0">Receive clear itemized bill with spare parts breakdown. Pay online and rate your mechanic.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Auto Fix -->
+<section class="home-benefits-section py-5">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <span class="home-eyebrow">Service on your terms</span>
+                <h2 class="fw-bold mb-3">A clearer, more confident repair experience</h2>
+                <p class="text-muted mb-0">Choose who works on your car or two-wheeler, follow each stage, and review the service details before you proceed.</p>
+            </div>
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <article class="home-benefit-card h-100">
+                            <span class="home-benefit-icon"><i class="bi bi-person-check-fill" aria-hidden="true"></i></span>
+                            <h3>Choose your mechanic</h3>
+                            <p>Compare approved mechanics by experience, location, services, and customer reviews.</p>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="home-benefit-card h-100">
+                            <span class="home-benefit-icon"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i></span>
+                            <h3>Review clear estimates</h3>
+                            <p>See diagnosis notes and the proposed labour and parts costs before approving estimate-based work.</p>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="home-benefit-card h-100">
+                            <span class="home-benefit-icon"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+                            <h3>Follow repair progress</h3>
+                            <p>Check booking and repair status updates from your customer dashboard.</p>
+                        </article>
+                    </div>
+                    <div class="col-md-6">
+                        <article class="home-benefit-card h-100">
+                            <span class="home-benefit-icon"><i class="bi bi-car-front-fill" aria-hidden="true"></i></span>
+                            <h3>Cars and two-wheelers</h3>
+                            <p>Keep your cars, bikes, and scooters together in one vehicle garage.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Services Section -->
+<section class="home-services-section py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <span class="home-eyebrow">For cars, bikes, and scooters</span>
+                <h2 class="fw-bold mb-0">Popular Services</h2>
+            </div>
+            <a href="{% url 'service_list' %}" class="btn btn-outline-primary btn-sm">View All Services <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="row g-4 mobile-horizontal-row mobile-service-row" tabindex="0" aria-label="Swipe to view popular services">
+            {% for s in featured_services %}
+                <div class="col-md-4 mobile-horizontal-item">
+                    <div class="card card-custom home-service-card h-100 p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="rounded-3 bg-primary text-white p-2">
+                                <i class="bi {{ s.icon|default:'bi-wrench' }}" style="font-size: 1.3rem;"></i>
+                            </div>
+                            <span class="badge bg-secondary">{{ s.get_vehicle_type_display }}</span>
+                        </div>
+                        <h5 class="fw-bold">{{ s.service_name }}</h5>
+                        <p class="text-muted small flex-grow-1">{{ s.description|truncatewords:18 }}</p>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="fw-bold text-success fs-5">₹{{ s.base_price }}</span>
+                            <a href="{% url 'service_detail' s.id %}" class="btn btn-sm btn-outline-secondary">View Mechanics</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center text-muted py-4">
+                    <p>No services catalogued yet. Add services via Admin Portal!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Top Mechanics Section -->
+<section class="container py-5 home-content-section home-mechanics-section">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <span class="home-eyebrow">Approved professionals</span>
+            <h2 class="fw-bold mb-0">Top Mechanics Ready For Bookings</h2>
+        </div>
+        <a href="{% url 'browse_mechanics' %}" class="btn btn-outline-primary btn-sm">Browse All Mechanics <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="row g-4 mobile-horizontal-row mobile-mechanic-row" tabindex="0" aria-label="Swipe to view mechanics">
+        {% for m in top_mechanics %}
+            <div class="col-md-3 mobile-horizontal-item">
+                <div class="card card-custom home-mechanic-card h-100 p-3 text-center">
+                    <div class="rounded-circle bg-light border mx-auto mb-2 d-flex align-items-center justify-content-center text-primary" style="width: 70px; height: 70px; font-size: 2rem;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ m.user.get_full_name|default:m.user.username }}</h5>
+                    <p class="text-primary small mb-1">{{ m.workshop_name|default:m.specialization }}</p>
+                    <div class="star-rating small mb-2">
+                        <i class="bi bi-star-fill text-warning"></i> <strong>{{ m.average_rating }}</strong> 
+                        <span class="text-muted">({{ m.total_reviews_count }} reviews)</span>
+                    </div>
+                    <p class="text-muted small mb-3"><i class="bi bi-geo-alt"></i> {{ m.city }} &bull; {{ m.experience_years }} yrs exp</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mechanic_detail' m.id %}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                        <a href="{% url 'book_service_with_mechanic' m.id %}" class="btn btn-sm btn-warning text-dark fw-bold">Select &amp; Book</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center text-muted py-4">
+                <p>No approved mechanics available yet. Mechanics can register anytime!</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Recent real customer reviews -->
+<section class="home-reviews-section py-5">
+    <div class="container">
+        <div class="home-section-heading text-center mb-4">
+            <span class="home-eyebrow">Feedback from completed services</span>
+            <h2 class="fw-bold">Customer Reviews</h2>
+            <p class="text-muted mb-0">Recent ratings and comments shared by Auto Fix customers.</p>
+        </div>
+        <div class="row g-4">
+            {% for review in recent_reviews %}
+                <div class="col-md-4">
+                    <article class="home-review-card h-100">
+                        <div class="home-review-stars" aria-label="{{ review.rating }} out of 5 stars">
+                            {% for star in "12345" %}
+                                {% if forloop.counter <= review.rating %}<i class="bi bi-star-fill" aria-hidden="true"></i>{% else %}<i class="bi bi-star" aria-hidden="true"></i>{% endif %}
+                            {% endfor %}
+                            <span>{{ review.rating }}.0</span>
+                        </div>
+                        <p class="home-review-comment">“{{ review.comment|truncatewords:34 }}”</p>
+                        <div class="home-review-author">
+                            <span class="home-review-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                            <span><strong>{{ review.customer.user.first_name|default:review.customer.user.username }}</strong><small>{{ review.mechanic.workshop_name|default:review.mechanic.user.get_full_name }}</small></span>
+                        </div>
+                    </article>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="home-empty-state text-center">Customer reviews will appear here after completed services are rated.</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Frequently Asked Questions -->
+<section class="container py-5 home-faq-section">
+    <div class="row g-5">
+        <div class="col-lg-4">
+            <span class="home-eyebrow">Helpful answers</span>
+            <h2 class="fw-bold">Frequently Asked Questions</h2>
+            <p class="text-muted">A few details to help you get started with your next service.</p>
+        </div>
+        <div class="col-lg-8">
+            <div class="accordion home-faq" id="homeFaq">
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#homeFaqOne" aria-expanded="true" aria-controls="homeFaqOne">Can I book service for a bike or scooter?</button></h3>
+                    <div id="homeFaqOne" class="accordion-collapse collapse show" data-bs-parent="#homeFaq"><div class="accordion-body">Yes. Auto Fix supports cars, bikes, and scooters. Available service options depend on each service and mechanic.</div></div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#homeFaqTwo" aria-expanded="false" aria-controls="homeFaqTwo">How do I choose a mechanic?</button></h3>
+                    <div id="homeFaqTwo" class="accordion-collapse collapse" data-bs-parent="#homeFaq"><div class="accordion-body">Browse approved mechanics and compare their experience, city, service offerings, availability, and customer reviews before booking.</div></div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#homeFaqThree" aria-expanded="false" aria-controls="homeFaqThree">When do I approve a repair estimate?</button></h3>
+                    <div id="homeFaqThree" class="accordion-collapse collapse" data-bs-parent="#homeFaq"><div class="accordion-body">For diagnosis-based work, the mechanic sends an estimate after inspection. Review it in your bookings and approve or reject it before repair work proceeds.</div></div>
+                </div>
+                <div class="accordion-item">
+                    <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#homeFaqFour" aria-expanded="false" aria-controls="homeFaqFour">Where can I see the final invoice?</button></h3>
+                    <div id="homeFaqFour" class="accordion-collapse collapse" data-bs-parent="#homeFaq"><div class="accordion-body">After the mechanic completes the job, the invoice is available from the booking details and your customer dashboard.</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

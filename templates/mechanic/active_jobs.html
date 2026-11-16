@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Active Service Jobs - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Active Workshop Jobs</h2>
+            <p class="text-muted small mb-0">Progressively update status: Vehicle Received &rarr; In Progress &rarr; Complete Service</p>
+        </div>
+        <a href="{% url 'mechanic_dashboard' %}" class="btn btn-outline-secondary btn-sm">Dashboard</a>
+    </div>
+
+    <div class="row g-4">
+        {% for j in jobs %}
+            <div class="col-lg-6">
+                <div class="card card-custom p-4 bg-white h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="font-monospace text-primary fw-bold">{{ j.booking_number }}</span>
+                            <h5 class="fw-bold mb-0 mt-1">{{ j.vehicle.vehicle_name }}</h5>
+                            <span class="badge bg-secondary font-monospace">{{ j.vehicle.vehicle_number }}</span>
+                        </div>
+                        <span class="badge 
+                            {% if j.status == 'ACCEPTED' %}bg-primary
+                            {% elif j.status == 'VEHICLE_RECEIVED' %}bg-info text-dark
+                            {% elif j.status == 'ESTIMATE_SENT' %}bg-warning text-dark
+                            {% elif j.status == 'IN_PROGRESS' %}bg-success
+                            {% endif %} fs-6">
+                            {% if j.status == 'ESTIMATE_SENT' %}
+                                <i class="bi bi-hourglass-split me-1"></i>Estimate Awaiting Approval
+                            {% else %}
+                                {{ j.get_status_display }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 small mb-3">
+                        <div class="mb-1"><strong>Customer:</strong> {{ j.customer.user.get_full_name|default:j.customer.user.username }} (<i class="bi bi-telephone"></i> {{ j.customer.phone }})</div>
+                        <div class="mb-1">
+                            <strong>Service:</strong> {{ j.service.service_name }}
+                            {% if j.service.price_type == 'ESTIMATE' or j.booking_type == 'CUSTOM_PROBLEM' %}
+                                <span class="badge bg-warning text-dark ms-1">Custom Problem</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-dark ms-1">Fixed Package (₹{{ j.service.base_price }})</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-1"><strong>Scheduled Slot:</strong> {{ j.appointment_date|date:"d M Y" }} at {{ j.appointment_time|time:"h:i A" }}</div>
+                        {% if j.customer_notes %}
+                            <div class="p-2 mt-2 bg-white rounded border border-warning-subtle text-dark">
+                                <strong><i class="bi bi-chat-left-dots me-1 text-warning"></i>Customer Problem:</strong> {{ j.customer_notes }}
+                            </div>
+                        {% endif %}
+                        {% if j.status == 'ESTIMATE_SENT' or j.estimated_total %}
+                            <div class="p-2 mt-2 bg-warning-subtle rounded border border-warning text-dark">
+                                <strong><i class="bi bi-calculator me-1"></i>Quoted Estimate:</strong> ₹{{ j.estimated_total|default:"0.00" }} 
+                                <span class="text-muted">(Labour: ₹{{ j.estimated_labour|default:"0" }} + Parts: ₹{{ j.estimated_parts|default:"0" }})</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Status Update Control Form -->
+                    <div class="mt-auto pt-3 border-top">
+                        {% if j.status == 'ACCEPTED' %}
+                            <form method="POST" action="{% url 'update_job_status' j.id %}">
+                                {% csrf_token %}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted"><i class="bi bi-1-circle me-1"></i>Step 1: Vehicle arrival</span>
+                                    <input type="hidden" name="new_status" value="VEHICLE_RECEIVED">
+                                    <button type="submit" class="btn btn-info btn-sm text-dark fw-bold">
+                                        <i class="bi bi-box-arrow-in-down me-1"></i> Mark Vehicle Received
+                                    </button>
+                                </div>
+                            </form>
+                        {% elif j.status == 'VEHICLE_RECEIVED' %}
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <span class="small text-muted"><i class="bi bi-2-circle me-1"></i>Step 2: Inspect vehicle</span>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'provide_estimate' j.id %}" class="btn btn-warning btn-sm text-dark fw-bold">
+                                        <i class="bi bi-clipboard2-pulse me-1"></i> Inspect &amp; Send Estimate
+                                    </a>
+                                    {% if j.service.price_type != 'ESTIMATE' and j.booking_type != 'CUSTOM_PROBLEM' %}
+                                        <form method="POST" action="{% url 'update_job_status' j.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="new_status" value="IN_PROGRESS">
+                                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                Start Directly
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% elif j.status == 'ESTIMATE_SENT' %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-warning fw-semibold">
+                                    <i class="bi bi-clock-history me-1"></i>Waiting for customer approval
+                                </span>
+                                <a href="{% url 'provide_estimate' j.id %}" class="btn btn-outline-warning btn-sm">
+                                    <i class="bi bi-pencil me-1"></i> Edit Estimate
+                                </a>
+                            </div>
+                        {% elif j.status == 'IN_PROGRESS' %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-success fw-semibold"><i class="bi bi-tools me-1"></i>Repair in progress</span>
+                                <a href="{% url 'complete_job' j.id %}" class="btn btn-success btn-sm fw-bold">
+                                    <i class="bi bi-check2-all me-1"></i> Complete &amp; Generate Bill
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="card card-custom p-5 bg-white mx-auto" style="max-width: 500px;">
+                    <i class="bi bi-wrench text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="fw-bold mt-3">No Active Jobs</h5>
+                    <p class="text-muted small">All accepted bookings will appear here for progress tracking.</p>
+                    <a href="{% url 'booking_requests' %}" class="btn btn-primary btn-sm mx-auto">Check Incoming Requests</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

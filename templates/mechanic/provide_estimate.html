@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Provide Cost Estimate - Job #{{ booking.booking_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a href="{% url 'mechanic_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'active_jobs' %}">Active Jobs</a></li>
+                    <li class="breadcrumb-item active">Provide Estimate</li>
+                </ol>
+            </nav>
+
+            <div class="card card-custom p-4 bg-white shadow-sm">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
+                    <div>
+                        <span class="badge bg-warning text-dark font-monospace mb-1">
+                            <i class="bi bi-clipboard2-pulse me-1"></i> Cost Estimation
+                        </span>
+                        <h4 class="fw-bold mb-0">Vehicle Inspection & Cost Estimate</h4>
+                        <p class="text-muted small mb-0">Booking #{{ booking.booking_number }} &bull; Service: {{ booking.service.service_name }}</p>
+                    </div>
+                    <span class="badge bg-info text-dark fs-6">{{ booking.get_status_display }}</span>
+                </div>
+
+                <!-- Vehicle & Customer Quick Info -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <div class="text-muted small">Vehicle Details</div>
+                            <div class="fw-bold fs-5">{{ booking.vehicle.vehicle_name }}</div>
+                            <div class="small text-secondary font-monospace">{{ booking.vehicle.vehicle_number }} &bull; {{ booking.vehicle.get_vehicle_type_display }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <div class="text-muted small">Customer Contact</div>
+                            <div class="fw-bold fs-5">{{ booking.customer.user.get_full_name|default:booking.customer.user.username }}</div>
+                            <div class="small text-secondary"><i class="bi bi-telephone me-1"></i>{{ booking.customer.phone }} &bull; {{ booking.customer.city }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Reported Problem -->
+                <div class="alert alert-warning border-warning d-flex align-items-start mb-4">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-3 mt-1"></i>
+                    <div>
+                        <strong class="d-block mb-1">Customer Reported Problem / Symptoms:</strong>
+                        <div class="text-dark">{{ booking.customer_notes|default:"General checkup requested by customer." }}</div>
+                    </div>
+                </div>
+
+                <!-- Estimate Form -->
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <h5 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-calculator me-2"></i>Itemized Estimate
+                    </h5>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Estimated Labour Charge (₹) *</label>
+                            {{ form.estimated_labour }}
+                            <div class="form-text small">Your base service/labour fee for diagnosis & overhaul.</div>
+                            {% if form.estimated_labour.errors %}
+                                <div class="text-danger small mt-1">{{ form.estimated_labour.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Estimated Spare Parts Cost (₹) *</label>
+                            {{ form.estimated_parts }}
+                            <div class="form-text small">Estimated cost of replacements (set ₹0 if no parts needed).</div>
+                            {% if form.estimated_parts.errors %}
+                                <div class="text-danger small mt-1">{{ form.estimated_parts.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Live Estimate Calculator Banner -->
+                    <div class="card bg-primary-subtle border-0 p-3 mb-4 rounded-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="small text-muted fw-semibold">TOTAL ESTIMATED QUOTE (Excl. Tax)</div>
+                                <div class="small text-muted">Customer will see this estimate and must approve before work begins.</div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fs-3 fw-bold text-primary" id="total_estimate_display">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Physical Inspection Findings & Parts Details *</label>
+                        {{ form.estimate_notes }}
+                        <div class="form-text small">List all inspected defects, damaged components, parts to be purchased, and reasoning for the estimate.</div>
+                        {% if form.estimate_notes.errors %}
+                            <div class="text-danger small mt-1">{{ form.estimate_notes.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a href="{% url 'active_jobs' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Active Jobs
+                        </a>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2">
+                            <i class="bi bi-send-check-fill me-1"></i> Send Estimate to Customer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

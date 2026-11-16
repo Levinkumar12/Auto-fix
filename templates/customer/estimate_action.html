@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if action == 'approve' %}Approve Cost Estimate{% else %}Decline Cost Estimate{% endif %} - Auto Fix{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card card-custom p-4 bg-white shadow-sm">
+                {% if action == 'approve' %}
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-success-subtle text-success mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <h4 class="fw-bold">Approve Repair Cost Estimate</h4>
+                        <p class="text-muted small">Review the inspection findings and cost quote provided by your mechanic</p>
+                    </div>
+
+                    <!-- Booking & Vehicle Summary -->
+                    <div class="bg-light p-3 rounded-3 mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Booking Number:</span>
+                            <span class="font-monospace fw-bold">{{ booking.booking_number }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Vehicle:</span>
+                            <span class="fw-semibold">{{ booking.vehicle.vehicle_name }} ({{ booking.vehicle.vehicle_number }})</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Assigned Mechanic:</span>
+                            <span class="fw-semibold">{{ booking.mechanic.workshop_name|default:booking.mechanic.user.username }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Quoted Estimate Details -->
+                    <div class="card border-primary-subtle bg-primary-subtle p-3 mb-3 rounded-3">
+                        <h6 class="fw-bold text-primary mb-2">
+                            <i class="bi bi-receipt me-1"></i> Quoted Breakdown
+                        </h6>
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span>Estimated Labour Charge</span>
+                            <span class="fw-semibold">₹{{ booking.estimated_labour|default:"0.00" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span>Estimated Spare Parts</span>
+                            <span class="fw-semibold">₹{{ booking.estimated_parts|default:"0.00" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 fs-5 fw-bold text-dark">
+                            <span>Total Quoted (Pre-tax)</span>
+                            <span class="text-primary">₹{{ booking.estimated_total|default:"0.00" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Inspection Notes -->
+                    <div class="card border-0 bg-light p-3 mb-4 rounded-3">
+                        <strong class="small text-muted mb-1 d-block">
+                            <i class="bi bi-clipboard-pulse me-1 text-primary"></i> Mechanic Diagnosis &amp; Replacement Details:
+                        </strong>
+                        <p class="small text-dark mb-0" style="white-space: pre-line;">{{ booking.estimate_notes|default:"No specific notes recorded." }}</p>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success py-2 fw-bold">
+                                <i class="bi bi-check2-circle me-1"></i> Approve Estimate &amp; Begin Repair
+                            </button>
+                            <a href="{% url 'reject_estimate' booking.id %}" class="btn btn-outline-danger btn-sm">
+                                Decline this Estimate
+                            </a>
+                            <a href="{% url 'booking_detail' booking.id %}" class="btn btn-link text-muted btn-sm">
+                                Go Back
+                            </a>
+                        </div>
+                    </form>
+
+                {% else %}
+                    <!-- Reject / Decline View -->
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-danger-subtle text-danger mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </div>
+                        <h4 class="fw-bold">Decline Cost Estimate</h4>
+                        <p class="text-muted small">Are you sure you want to decline this quote? The booking will be cancelled and you can pick up your vehicle.</p>
+                    </div>
+
+                    <div class="alert alert-secondary small mb-3">
+                        <div><strong>Quoted Amount:</strong> ₹{{ booking.estimated_total }}</div>
+                        <div><strong>Mechanic:</strong> {{ booking.mechanic.workshop_name|default:booking.mechanic.user.username }}</div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Reason for declining (Optional):</label>
+                            <textarea name="rejection_reason" class="form-control form-control-sm" rows="3" placeholder="e.g. Estimate exceeds budget, will inspect elsewhere..."></textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger py-2 fw-bold">
+                                <i class="bi bi-x-octagon me-1"></i> Decline &amp; Cancel Booking
+                            </button>
+                            <a href="{% url 'booking_detail' booking.id %}" class="btn btn-outline-secondary btn-sm">
+                                Cancel (Keep Booking)
+                            </a>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
